@@ -1,23 +1,31 @@
 version:  "3.8"
 
-networks:
-  backend:
-    external: false
-    name: backend
 services:
   getirdb:
-    networks:
-      - backend
     image: mongo:latest
     container_name: getirdb
     ports:
-      - 27017:27017
-  app-image:
-    networks:
-      - backend
-    image: app-image
+    - 27017:27017
+  redis:
+    container_name: "redis"
+    image: library/redis:alpine
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass mypassword
+    ports:
+      - 6379:6379
+    volumes:
+      - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+  app:
+    depends_on:
+      - mongo
+      - redis-server
+    image: readingisgood
     container_name: readingisgood
     ports:
       - 8080:8080
     links:
       - getirdb
+    environment:
+      SPRING_APPLICATION_JSON: '{
+            "spring.data.mongodb.host":"getirdb",
+            "spring.redis.host":"redis"
+      }'

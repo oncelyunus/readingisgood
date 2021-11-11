@@ -31,6 +31,6 @@ public class User {
         @NotBlank
         @Size(max = 120)
         private String password;
-
         private Set<String> roles = new HashSet<>();
+        private Address address;
 }

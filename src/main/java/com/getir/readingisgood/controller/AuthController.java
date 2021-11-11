@@ -3,6 +3,7 @@ package com.getir.readingisgood.controller;
 import com.getir.readingisgood.dto.request.LoginDTO;
 import com.getir.readingisgood.dto.request.SignupDTO;
 import com.getir.readingisgood.dto.response.ResponseDTO;
+import com.getir.readingisgood.helper.GetirException;
 import com.getir.readingisgood.models.RoleType;
 import com.getir.readingisgood.models.User;
 import com.getir.readingisgood.repository.UserRepository;
@@ -30,8 +31,6 @@ import java.util.Set;
         consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_XML_VALUE})
 public class AuthController {
 
-        private final UserRepository userRepository;
-        private final PasswordEncoder passwordEncoder;
         private final AuthService authService;
 
         @PostMapping("/signin")
@@ -41,41 +40,8 @@ public class AuthController {
 
 
         @PostMapping("/signup")
-        public ResponseEntity<?> registerUser(@Valid @RequestBody SignupDTO signupDTO) {
-                if (userRepository.existsByUsername(signupDTO.getUsername())) {
-                        return ResponseEntity
-                                .badRequest()
-                                .body(new ResponseDTO().setMessage("Error: Username is already taken!"));
-                }
-
-                if (userRepository.existsByEmail(signupDTO.getEmail())) {
-                        return ResponseEntity
-                                .badRequest()
-                                .body(new ResponseDTO().setMessage("Error: Email is already in use!"));
-                }
-
-                User user = new User()
-                        .setUsername(signupDTO.getUsername())
-                        .setEmail(signupDTO.getEmail())
-                        .setPassword(passwordEncoder.encode(signupDTO.getPassword()));
-
-                Set<String> strRoles = signupDTO.getRoles();
-                Set<String> roles = new HashSet<>();
-
-                if (CollectionUtils.isEmpty(strRoles)) {
-                        roles.add(RoleType.USER.getName());
-                } else {
-                        strRoles.forEach(role -> {
-                                if (role.equals("admin")) {
-                                        roles.add(RoleType.ADMIN.getName());
-                                } else {
-                                        roles.add(RoleType.USER.getName());
-                                }
-                        });
-                }
-
-                user.setRoles(roles);
-                userRepository.save(user);
+        public ResponseEntity<?> registerUser(@Valid @RequestBody SignupDTO signupDTO) throws GetirException {
+                authService.registerNewUser(signupDTO);
 
                 return ResponseEntity.ok(new ResponseDTO().setMessage("User registered successfully!"));
         }

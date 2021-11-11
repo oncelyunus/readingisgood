@@ -1,8 +1,3 @@
 FROM openjdk:11-jre-slim
-MAINTAINER "Getir App <getir@app.com>"
-WORKDIR /app
-
-COPY ./target/*.jar ./app.jar
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-
-EXPOSE 8080
+ADD target/readingisgood.jar app.jar
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","app.jar"]

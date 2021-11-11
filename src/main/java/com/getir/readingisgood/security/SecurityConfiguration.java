@@ -41,11 +41,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 "/v3/api-docs/**",
                 "/swagger-ui/**",
 
-                "/api/auth/**"
+                "/api/auth/**",
+                "/api/book/list"
         };
 
         private static final String[] ADMIN_WHITELIST = {
-                "/api/book/**",
+                "/api/book/createOrUpdate",
                 "/api/statistics/**"
         };
 
