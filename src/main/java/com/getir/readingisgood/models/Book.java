@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -17,7 +18,6 @@ import java.util.Set;
 public class Book {
 
         @Id
-        @JsonIgnore
         private String id;
 
         @Indexed(unique = true)
@@ -26,6 +26,8 @@ public class Book {
         private String title;
         private Set<String> author;
         private String publishedDate;
+
+        @Field("available")
         private int available;
         private int pages;
         private String language;

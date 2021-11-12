@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -26,6 +27,7 @@ import java.util.Objects;
 public class BookService {
         private final BookRepository bookRepository;
         private final MongoTemplate mongoTemplate;
+        private final RedisTemplate redisTemplate;
 
         public Boolean isExists(String isbn) {
                 return !Objects.isNull(findByIsbn(isbn));
