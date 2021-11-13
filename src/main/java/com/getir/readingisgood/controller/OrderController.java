@@ -1,5 +1,6 @@
 package com.getir.readingisgood.controller;
 
+import com.getir.readingisgood.contants.Messages;
 import com.getir.readingisgood.dto.request.OrderBuyDTO;
 import com.getir.readingisgood.dto.response.ResponseDTO;
 import com.getir.readingisgood.helper.GetirException;
@@ -35,17 +36,23 @@ public class OrderController {
         @PostMapping("/buy/{order}")
         public ResponseEntity<?> buy(Authentication authentication,
                 @PathVariable String order) throws GetirException {
-                orderService.buy(authentication.getName(), order);
-                return ResponseEntity.ok().body(new ResponseDTO().setMessage("Order Saved"));
+                Order completed = orderService.buy(authentication.getName(), order);
+                return ResponseEntity.ok().body(new ResponseDTO().setMessage(
+                        String.format(Messages.ORDER_COMPLETED_MESSAGE, completed.getId())
+                ));
         }
 
         @PostMapping("/addCart")
         public ResponseEntity<?> toCart(Authentication authentication,
                 @Valid @RequestBody OrderBuyDTO orderBuyDTO) throws GetirException {
-                log.info("current username {}", authentication.getName());
+                log.info("current username {} wants to add to cart {}", authentication.getName(),
+                        orderBuyDTO.getIsbn());
                 Order order = orderService.addCart(authentication.getName(),
-                        orderBuyDTO.getBookId());
-                return ResponseEntity.ok().body(order);
+                        orderBuyDTO.getIsbn());
+                return ResponseEntity.ok().body(new ResponseDTO()
+                        .setMessage(
+                                String.format(Messages.ORDER_ADD2CART_MESSAGE, orderBuyDTO.getIsbn(), order.getId())
+                        ));
         }
 
         @PostMapping("/{id}")

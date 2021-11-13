@@ -41,7 +41,7 @@ public class JwtUtil {
                 GetirUserDetail userPrincipal = (GetirUserDetail) authentication.getPrincipal();
                 final Date now = new Date();
                 return Jwts.builder()
-                        .setSubject((userPrincipal.getUsername()))
+                        .setSubject((userPrincipal.getEmail()))
                         .setIssuedAt(now)
                         .setExpiration(new Date(now.getTime() + jwtExpirationMs))
                         .signWith(hashedSecretKey, SignatureAlgorithm.HS512)

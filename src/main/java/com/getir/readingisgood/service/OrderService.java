@@ -2,7 +2,7 @@ package com.getir.readingisgood.service;
 
 import static org.springframework.data.mongodb.core.query.Criteria.*;
 
-import com.getir.readingisgood.contants.ErrorCodes;
+import com.getir.readingisgood.contants.Messages;
 import com.getir.readingisgood.enums.Status;
 import com.getir.readingisgood.helper.BigDecimalHelper;
 import com.getir.readingisgood.helper.GetirException;
@@ -13,10 +13,14 @@ import com.getir.readingisgood.repository.OrderRepository;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,18 +37,18 @@ public class OrderService {
         private final OrderRepository orderRepository;
         private final BookRepository bookRepository;
 
-        public void buy(String username, String orderId) throws GetirException {
+        public Order buy(String username, String orderId) throws GetirException {
                 Order order = orderRepository.findByCustomerAndStatusAndId(username, Status.OPEN, orderId);
                 if(Objects.isNull(order)) {
-                        throw new GetirException(ErrorCodes.ORDER_NOT_AVALIABLE_CODE,
-                                ErrorCodes.ORDER_NOT_AVALIABLE_MESSAGE);
+                        throw new GetirException(Messages.ORDER_NOT_AVALIABLE_CODE,
+                                Messages.ORDER_NOT_AVALIABLE_MESSAGE);
                 }
 
                 order.setStatus(Status.COMPLETED);
-                orderRepository.save(order);
+                return orderRepository.save(order);
         }
 
-        public Order addCart(String userName, String bookId) throws GetirException {
+        public Order addCart(String userName, String isbn) throws GetirException {
                 Order order = orderRepository.findByCustomerAndStatus(userName, Status.OPEN);
                 if(Objects.isNull(order)) {
                         order = new Order().setCustomer(userName)
@@ -53,43 +57,59 @@ public class OrderService {
                                 .setPrice(new BigDecimal(0));
                 }
 
-                checkBookAvaliable(bookId);
-                Book existBook = bookRepository.findByID(bookId);
+                checkBookAvaliable(isbn);
+                Book existBook = bookRepository.findByIsbn(isbn);
                 BigDecimal totalPrice = order.getPrice().add(existBook.getPrice());
                 order.setPrice(BigDecimalHelper.toPrecision(totalPrice, 2));
                 order.getBooks().add(existBook);
+                order.setItemCount(order.getBooks().size());
                 return mongoOperations.save(order);
         }
 
-        private synchronized void checkBookAvaliable(String bookId) throws GetirException {
+        private synchronized void checkBookAvaliable(String isbn) throws GetirException {
                 UpdateResult result =  mongoOperations.update(Book.class)
-                        .matching(Query.query(where("id").is(bookId).and("available").gt(0)))
+                        .matching(Query.query(where("isbn").is(isbn).and("available").gt(0)))
                         .apply(new Update().inc("available", -1))
                                 .first();
 
                 if (result.getModifiedCount() != 1) {
-                        throw new GetirException(ErrorCodes.BOOK_NOT_AVALIABLE_CODE,
-                                ErrorCodes.BOOK_NOT_AVALIABLE_MESSAGE);
+                        throw new GetirException(Messages.BOOK_NOT_AVALIABLE_CODE,
+                                Messages.BOOK_NOT_AVALIABLE_MESSAGE);
                 }
         }
 
         public Order findById(String name, String id) throws GetirException {
                 Order order = orderRepository.findByCustomerAndId(name, id);
                 if(Objects.isNull(order)) {
-                        throw new GetirException(ErrorCodes.ORDER_NOT_AVALIABLE_CODE,
-                                ErrorCodes.ORDER_NOT_AVALIABLE_MESSAGE);
+                        throw new GetirException(Messages.ORDER_NOT_AVALIABLE_CODE,
+                                Messages.ORDER_NOT_AVALIABLE_MESSAGE);
                 }
 
                 return order;
         }
 
         public List<Order> fetchOrderBetweenDate(Date fromDate, Date toDate) {
-                Criteria publishedDateCriteria = Criteria
+                Criteria dateCriteria = Criteria
                         .where("date").gte(fromDate);
                 if(Objects.nonNull(toDate)) {
-                        publishedDateCriteria.lte(toDate);
+                        dateCriteria.lte(toDate);
                 }
-                Query query = new Query(publishedDateCriteria);
+                var query = new Query(dateCriteria);
                 return  mongoOperations.find(query,Order.class);
+        }
+
+        public Page<Order> getMyOrder(String customer, Integer page, Integer size) {
+                Criteria criteria = Criteria
+                        .where("customer").gte(customer);
+                Pageable pageable = PageRequest.of(page,size);
+                var query = new Query().with(pageable);
+                query.addCriteria(criteria);
+
+                Page<Order> results =  PageableExecutionUtils.getPage(
+                        mongoOperations.find(query, Order.class),
+                        pageable,
+                        () -> mongoOperations.count(query.skip(0).limit(0), Order.class)
+                );
+                return results;
         }
 }

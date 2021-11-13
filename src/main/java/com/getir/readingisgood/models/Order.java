@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,7 +34,10 @@ public class Order {
         @DBRef
         private List<Book> books = new ArrayList<>();
 
-        @Field("price")
+        @Field(value = "price", targetType = FieldType.DECIMAL128)
         private BigDecimal price;
+
+        @Field("item_count")
+        private Integer itemCount;
 
 }

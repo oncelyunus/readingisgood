@@ -1,6 +1,6 @@
 package com.getir.readingisgood.service;
 
-import com.getir.readingisgood.contants.ErrorCodes;
+import com.getir.readingisgood.contants.Messages;
 import com.getir.readingisgood.dto.request.LoginDTO;
 import com.getir.readingisgood.dto.request.SignupDTO;
 import com.getir.readingisgood.dto.response.JwtResponseDTO;
@@ -41,7 +41,7 @@ public class AuthService {
         private final RedisTemplate<String, Object> redisTemplate;
 
         public JwtResponseDTO login(LoginDTO loginDTO) {
-                final UserAuthToken userAuthToken = UserAuthToken.of(loginDTO.getUsername(), loginDTO.getPassword());
+                final UserAuthToken userAuthToken = UserAuthToken.of(loginDTO.getEmail(), loginDTO.getPassword());
                 final Authentication authentication = authenticationManagerBuilder.getObject().authenticate(userAuthToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 String jwt = jwtUtil.generateJwtToken(authentication);
@@ -61,14 +61,10 @@ public class AuthService {
         }
 
         public void registerNewUser(SignupDTO signupDTO) throws GetirException {
-                if(userRepository.existsByUsername(signupDTO.getUsername())) {
-                        throw new GetirException(ErrorCodes.USER_ALREADY_EXISTS_CODE,
-                                ErrorCodes.USER_ALREADY_EXISTS_MESSAGE+signupDTO.getUsername());
-                }
 
                 if (userRepository.existsByEmail(signupDTO.getEmail())) {
-                        throw new GetirException(ErrorCodes.USER_ALREADY_EXISTS_CODE,
-                                ErrorCodes.USER_ALREADY_EXISTS_MESSAGE+signupDTO.getEmail());
+                        throw new GetirException(Messages.USER_ALREADY_EXISTS_CODE,
+                                Messages.USER_ALREADY_EXISTS_MESSAGE+signupDTO.getEmail());
                 }
 
                 Address address = null;

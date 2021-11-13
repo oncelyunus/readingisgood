@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -17,9 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Log4j2
@@ -29,36 +27,28 @@ public class BookService {
         private final MongoTemplate mongoTemplate;
         private final RedisTemplate redisTemplate;
 
-        public Boolean isExists(String isbn) {
-                return !Objects.isNull(findByIsbn(isbn));
-        }
-
         public Book findByIsbn(String isbn) {
-                return bookRepository.findByIsbn(isbn).orElse(null);
+                return Optional.ofNullable(bookRepository.findByIsbn(isbn)).orElse(null);
         }
 
-        public Book saveBook(Book existBook) {
-                return bookRepository.save(existBook);
+        public void saveBook(Book existBook) {
+                bookRepository.save(existBook);
         }
 
         public void saveOrUpdateBook(BookRequestDTO bookRequestDTO) {
-                Book existBook = findByIsbn(bookRequestDTO.getIsbn().toString());
+                Book existBook = findByIsbn(bookRequestDTO.getIsbn());
                 if(Objects.isNull(existBook)) {
                         log.info("start new Book {} create flow ", bookRequestDTO.getIsbn());
                         existBook = new Book();
-                        existBook.setIsbn(bookRequestDTO.getIsbn().toString());
+                        existBook.setIsbn(bookRequestDTO.getIsbn());
                 }
 
                 if(StringUtils.hasText(bookRequestDTO.getTitle())) {
                         existBook.setTitle(bookRequestDTO.getTitle());
                 }
 
-                if(StringUtils.hasText(bookRequestDTO.getLanguage())) {
-                        existBook.setLanguage(bookRequestDTO.getLanguage());
-                }
-
-                if(StringUtils.hasText(bookRequestDTO.getPublishedDate())) {
-                        existBook.setPublishedDate(bookRequestDTO.getPublishedDate());
+                if(Objects.nonNull(bookRequestDTO.getPublished())) {
+                        existBook.setPublished(bookRequestDTO.getPublished());
                 }
 
                 if(!CollectionUtils.isEmpty(bookRequestDTO.getAuthor())) {
@@ -75,6 +65,10 @@ public class BookService {
 
                 if(Objects.nonNull(bookRequestDTO.getPrice())) {
                         existBook.setPrice(bookRequestDTO.getPrice());
+                }
+
+                if(StringUtils.hasText(bookRequestDTO.getWebsite())) {
+                        existBook.setWebsite(bookRequestDTO.getWebsite());
                 }
 
                 saveBook(existBook);

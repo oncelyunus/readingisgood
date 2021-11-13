@@ -10,10 +10,8 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends MongoRepository<Book, String> {
 
-        Optional<Book> findByIsbn(String isbn);
-
-        @Query(value="{ 'id' : ?0 }",fields="{ 'id' : 1, 'title' : 1,'price' : 1}")
-        Book findByID(String id);
+        @Query(value="{ 'isbn' : ?0 }",fields="{ 'id' : 1, 'title' : 1,'price' : 1}")
+        Book findByIsbn(String isbn);
 
 
 }

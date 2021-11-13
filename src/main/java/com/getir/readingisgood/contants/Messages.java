@@ -1,12 +1,16 @@
 package com.getir.readingisgood.contants;
 
-public class ErrorCodes {
+public class Messages {
+        private Messages() { }
+
+
         public static final String ORDER_NOT_AVALIABLE_CODE = "gt680";
         public static final String ORDER_NOT_AVALIABLE_MESSAGE = "Order not found";
 
-        private ErrorCodes() { }
 
-        public static final String SYSTEM_ERROR = "-1";
+        public static final String ORDER_COMPLETED_MESSAGE = "Order %s completed";
+
+        public static final String ORDER_ADD2CART_MESSAGE = "Added item %s to cart %s";
 
         public static final String USER_ALREADY_EXISTS_MESSAGE = "User already exists: ";
         public static final String USER_ALREADY_EXISTS_CODE = "gt481";

@@ -35,12 +35,10 @@ public class BookController {
                 return ResponseEntity.ok().body(new ResponseDTO().setMessage("Book Saved"));
         }
 
-        @GetMapping("/list")
+        @PostMapping("/list")
         public ResponseEntity<?> listBooks(@RequestParam(required = false, defaultValue = "0") Integer page,
                 @RequestParam(required = false, defaultValue = "50") Integer size) {
                 return ResponseEntity.ok(bookService.listAll(page, size));
         }
-
-
 
 }
