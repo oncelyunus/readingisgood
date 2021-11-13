@@ -32,7 +32,7 @@ public class ReadyEvent {
                                 resourceLoader.getResource("classpath:book.json").getInputStream(),
                                 new TypeReference<>() {});
                         bookRepository.deleteAll();
-                        // orderRepository.deleteAll();
+                        orderRepository.deleteAll();
 
                         bookRepository.saveAll(bookList);
                 } catch (IOException e) {
